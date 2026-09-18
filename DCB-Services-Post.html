@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCB Services</title>
+<link rel="icon" href="https://img.freepik.com/premium-vector/creative-bd-logo-design_773552-463.jpg?semt=ais_hybrid&w=400&q=90">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- Disable DevTool Library -->
+<script src="https://cdn.jsdelivr.net/npm/disable-devtool"></script>
+
+<style>
+  :root {
+    --bg-primary: #f0f4f9; --bg-secondary: rgba(255, 255, 255, 0.7);
+    --border-primary: rgba(226, 232, 240, 0.7); --text-primary: #334155;
+    --text-secondary: #0f172a; --text-tertiary: #475569; --text-header: #3730a3;
+    --bg-button-copy: #4f46e5; --bg-button-copy-hover: #4338ca; --bg-button-copy-success: #16a34a;
+    --shadow-primary: rgba(0, 0, 0, 0.05); --aurora-1: #5b21b6; --aurora-2: #1d4ed8;
+    --aurora-3: #047857; --aurora-4: #be185d;
+  }
+
+  body.dark-mode {
+    --bg-primary: #0b1120; --bg-secondary: rgba(15, 23, 42, 0.6);
+    --border-primary: rgba(51, 65, 85, 0.5); --text-primary: #cbd5e1;
+    --text-secondary: #f8fafc; --text-tertiary: #94a3b8; --text-header: #c7d2fe;
+    --aurora-1: #7c3aed; --aurora-2: #3b82f6; --aurora-3: #10b981; --aurora-4: #ec4899;
+  }
+
+  @keyframes aurora-animation {
+    0% { transform: translate(-50%, -50%) rotate(0deg) scale(1.5); }
+    50% { transform: translate(-50%, -50%) rotate(180deg) scale(2); }
+    100% { transform: translate(-50%, -50%) rotate(360deg) scale(1.5); }
+  }
+
+  html, body {
+    height: 100%; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-primary); color: var(--text-primary); transition: background-color 0.3s, color 0.3s;
+    overflow: hidden;
+  }
+  body::before, body::after {
+    content: ''; position: fixed; top: 50%; left: 50%;
+    width: 100vw; height: 100vw;
+    background-image: radial-gradient(circle, var(--aurora-1), transparent 50%),
+                      radial-gradient(circle, var(--aurora-2), transparent 50%),
+                      radial-gradient(circle, var(--aurora-3), transparent 50%),
+                      radial-gradient(circle, var(--aurora-4), transparent 50%);
+    background-size: 60% 60%, 70% 70%, 80% 80%, 90% 90%;
+    background-position: 0% 0%, 100% 0%, 0% 100%, 100% 100%;
+    background-repeat: no-repeat; filter: blur(80px); opacity: 0.3;
+    z-index: -1; animation: aurora-animation 40s linear infinite;
+  }
+  body::after { animation-direction: reverse; }
+  
+  .page-wrapper { display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
+  
+  /* --- Control Hub --- */
+  .control-hub {
+    padding: 30px; margin: 20px auto;
+    background: var(--bg-secondary); backdrop-filter: blur(10px);
+    border-radius: 20px; border: 1px solid var(--border-primary);
+    box-shadow: 0 8px 32px 0 var(--shadow-primary);
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    width: 90%; max-width: 600px;
+  }
+  h2 { margin: 0; font-size: 28px; color: var(--text-secondary); }
+  
+  #controls { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; }
+  #fileInfo { text-align: center; color: var(--text-tertiary); font-size: 14px; height: 20px; }
+  #fileInfo .filename { font-style: italic; color: #4f46e5; }
+  
+  /* --- FILE INPUT --- */
+  input[type="file"] {
+    width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; position: absolute; z-index: -1;
+  }
+  .file-upload-label {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+  }
+  .file-upload-label:hover {
+    background: var(--bg-tertiary);
+    border-color: #4f46e5;
+    color: #4f46e5;
+  }
+  
+  button {
+    border: none; border-radius: 8px; padding: 11px 22px; font-weight: 600; cursor: pointer;
+    transition: all 0.25s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  #submitBtn { background: linear-gradient(145deg, #4f46e5, #6366f1); color: white; }
+  #submitBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 15px -3px rgba(79, 70, 229, 0.4); }
+  #submitBtn:disabled { background: #a5b4fc; cursor: not-allowed; }
+  #submitBtn.loading { background: linear-gradient(145deg, #9ca3af, #6b7280); cursor: wait; }
+  #resetBtn { background: #ef4444; color: white; }
+  #resetBtn:hover:not(:disabled) { background: #dc2626; transform: translateY(-2px); }
+  #resetBtn:disabled { background-color: #fca5a5; cursor: not-allowed; }
+  #themeToggleBtn { background: var(--bg-secondary); color: var(--text-primary); padding: 10px; border-radius: 50%; width: 42px; height: 42px; }
+  #themeToggleBtn .icon-sun { display: block; } #themeToggleBtn .icon-moon { display: none; }
+  body:not(.dark-mode) #themeToggleBtn .icon-sun { display: none; } body:not(.dark-mode) #themeToggleBtn .icon-moon { display: block; }
+  
+  /* --- Main Layout --- */
+  #mainContentWrapper { display: flex; gap: 16px; flex: 1 1 auto; overflow: hidden; padding: 0 16px; margin-bottom: 20px;}
+  .table-container, #commentGenerator {
+    background: var(--bg-secondary); backdrop-filter: blur(10px); border-radius: 12px;
+    border: 1px solid var(--border-primary); box-shadow: 0 4px 12px var(--shadow-primary);
+  }
+  .table-container { padding: 16px; flex: 1 1 auto; overflow: auto; }
+  table { border-collapse: collapse; width: max-content; font-size: 14px; margin: 0 auto; }
+  th, td { border: 1px solid var(--border-primary); padding: 12px 8px; text-align: left; white-space: nowrap; }
+  th { background-color: var(--bg-tertiary); color: var(--text-header); position: sticky; top: 0; z-index: 10; font-weight: 600; }
+  tr:nth-child(even) { background-color: var(--bg-secondary); }
+  tr:hover { background-color: var(--bg-table-row-hover); }
+
+  /* --- Comment Generator --- */
+  #commentGenerator {
+    flex: 0 0 380px; display: none; flex-direction: column; padding: 24px;
+    position: sticky; top: 16px; max-height: calc(100vh - 52px);
+  }
+  #commentGenerator h3 {
+    color: var(--text-secondary); margin: 0 0 24px; font-size: 18px; font-weight: 600;
+    text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  #commentOutputArea { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+  .output-field { display: flex; flex-direction: column; gap: 4px; }
+  .output-field label { font-weight: 600; color: var(--text-tertiary); font-size: 11px; text-transform: uppercase; }
+  .output-field span {
+    background-color: var(--bg-primary); color: var(--text-primary); padding: 10px 14px; border-radius: 8px;
+    font-size: 14px; font-family: Consolas, 'Courier New', monospace; min-height: 1.2em; border: 1px solid var(--border-primary);
+  }
+  #copyCommentBtn { width: 100%; margin: 0; background: var(--bg-button-copy); color: white; font-size: 14px; }
+  #copyCommentBtn:hover:not(:disabled) { background: var(--bg-button-copy-hover); transform: translateY(-2px); }
+  #copyCommentBtn.success { background: var(--bg-button-copy-success); }
+
+  /* --- Footer & Misc --- */
+  .footer { text-align: center; padding: 20px 16px; background-color: var(--bg-footer); color: var(--text-on-dark-bg); font-weight: bold; border-top: 1px solid #374151; flex-shrink: 0; }
+  .row-number-cell { text-align: center; background-color: var(--bg-tertiary); font-weight: bold; color: var(--text-header); }
+  .no-data-message { font-weight: 600; text-align: center; padding: 24px; font-size: 18px; color: #dc2626; background: var(--bg-secondary); border-radius: 10px; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: #111827; color: white; padding: 12px 24px; border-radius: 8px; z-index: 1100; opacity: 0; transition: opacity 0.3s ease; }
+  .toast.show { opacity: 1; }
+    
+  @media (max-width: 1024px) { #mainContentWrapper { flex-direction: column; } #commentGenerator { position: static; max-height: none; margin-top: 16px;} }
+</style>
+</head>
+<body class="dark-mode">
+
+<div class="page-wrapper">
+    <div class="control-hub">
+        <h2>DCB Services</h2>
+        <div id="controls">
+          <input type="file" id="excelFile" accept=".xlsx,.xls" />
+          <label for="excelFile" class="file-upload-label">Choose File</label>
+          <button id="submitBtn" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11 16v-5H8l4-4 4 4h-3v5h-2Z"/><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2Zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8Z"/></svg>
+            Upload
+          </button>
+          <button id="resetBtn" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m16.192 6.344-4.243 4.242-4.242-4.242-1.414 1.414L10.535 12l-4.242 4.242 1.414 1.414 4.242-4.242 4.243 4.242 1.414-1.414L13.364 12l4.242-4.242z"/></svg>
+            Reset
+          </button>
+          <button id="themeToggleBtn" title="Toggle Day/Night Mode">
+            <svg class="icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22C17.5228 22 22 17.5228 22 12c0-.4627-.0316-.9177-.0921-1.364C19.9893 12.0335 17.6163 12.8333 15 12.8333 8.83223 12.8333 3.83333 7.83223 3.83333 1.66667c0-.6097.0421-.9082.1232-1.525C2.0134 2.15172.83333 4.90938.83333 8 .83333 15.8242 7.1758 22 15 22c-1.3333 0-2.5-.0833-3 0Z"/></svg>
+            <svg class="icon-sun" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-8a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z"/><path d="M12 22a1 1 0 0 1-1-1V19a1 1 0 0 1 2 0v2a1 1 0 0 1-1 1ZM5.636 6.364a1 1 0 0 1-.707-1.707l1.414-1.414a1 1 0 1 1 1.414 1.414L6.343 6.364a1 1 0 0 1-.707.364ZM18.364 19.071a1 1 0 0 1-.707-.293l-1.414-1.414a1 1 0 1 1 1.414-1.414l1.414 1.414a1 1 0 0 1-.707 1.707ZM21 13h-2a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2ZM5 13H3a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2ZM18.364 6.364a1 1 0 0 1-.707-.293L16.243 4.657a1 1 0 0 1 1.414-1.414l1.414 1.414a1 1 0 0 1-.707 1.707ZM5.636 19.071a1 1 0 0 1-.707-1.707l1.414-1.414a1 1 0 1 1 1.414 1.414L6.343 18.778a1 1 0 0 1-.707.293ZM12 5a1 1 0 0 1-1-1V2a1 1 0 0 1 2 0v2a1 1 0 0 1-1 1Z"/></svg>
+          </button>
+        </div>
+        <div id="fileInfo"></div>
+    </div>
+
+    <div id="mainContentWrapper">
+      <div class="table-container" id="tableContainer"></div>
+      <div id="commentGenerator" style="display: none;">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.767L13.277 18H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14h-7.277L9 18.233V16H4V4h16v12z"/></svg>
+          Comment Generator
+        </h3>
+        <div id="commentOutputArea">
+          <div class="output-field"><label>Service</label><span id="serviceComment"></span></div>
+          <div class="output-field"><label>Start Time</label><span id="startTimeComment"></span></div>
+          <div class="output-field"><label>End Time</label><span id="endTimeComment"></span></div>
+          <div class="output-field"><label>Total Amount</label><span id="amountComment"></span></div>
+        </div>
+        <button id="copyCommentBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H10c-1.103 0-2 .897-2 2v4H4c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2v-4h4c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zM4 20V10h10l.002 10H4zm16-6h-4v-4c0-1.103-.897-2-2-2h-4V4h10v10z"/></svg>
+          Copy Comment
+        </button>
+      </div>
+    </div>
+
+    <div class="footer"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.style.zoom = "70%";
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.remove('dark-mode');
+    }
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+    new ExcelFilterTable();
+  });
+
+  class ExcelFilterTable {
+    constructor() {
+      this.fileInput = document.getElementById("excelFile");
+      this.submitBtn = document.getElementById("submitBtn");
+      this.resetBtn = document.getElementById("resetBtn");
+      this.container = document.getElementById("tableContainer");
+      this.toast = document.getElementById("toast");
+      this.fileInfo = document.getElementById("fileInfo");
+      this.commentGenerator = document.getElementById("commentGenerator");
+      this.serviceCommentText = document.getElementById("serviceComment");
+      this.startTimeCommentText = document.getElementById("startTimeComment");
+      this.endTimeCommentText = document.getElementById("endTimeComment");
+      this.amountCommentText = document.getElementById("amountComment");
+      this.copyCommentBtn = document.getElementById("copyCommentBtn");
+      
+      this.originalData = [];
+      this.filteredData = [];
+      this.headers = [];
+      
+      this.excludedServicesColumns = [
+        "CDR Type", "Target Service No.", "Carrier Name", "Fnf Flag", "PaidByOther", "Usage", "Measure Unit", "Total Promotional Balance Before", "Total Promotional Fee", "Total Promotional Balance After", "Currency", "Promotion Code", "APN", "Network Type", "Roam Type", "Visited Area", "Home Zone", "Cell ID", "Offering Name", "Actual Volume", "Rating Group", "Rating Volume", "Free Volume", "Free Unit Name", "Free Unit Before", "Free Unit After", "Free Unit Consumed", "Consumed Offer", "OriginalRentalFee", "SDFFee", "Total Discount", "Total Tax"
+      ];
+      
+      this.initEventListeners();
+    }
+
+    initEventListeners() {
+      this.fileInput.addEventListener("change", () => {
+        if (this.fileInput.files.length > 0) {
+          this.handleFileUpload();
+        }
+      });
+      this.submitBtn.addEventListener("click", () => this.handleFileUpload());
+      this.resetBtn.addEventListener("click", () => this.resetApp());
+      this.copyCommentBtn.addEventListener('click', () => this.copyGeneratedComment());
+    }
+
+    showToast(message, duration = 3000) {
+      this.toast.textContent = message;
+      this.toast.classList.add('show');
+      setTimeout(() => this.toast.classList.remove('show'), duration);
+    }
+
+    async handleFileUpload() {
+      const file = this.fileInput.files[0];
+      if (!file) return;
+
+      this.submitBtn.disabled = true;
+      this.submitBtn.classList.add('loading');
+      this.submitBtn.innerHTML = `<svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke-width="2" stroke-linecap="round"/></svg> Loading...`;
+      this.fileInfo.textContent = '';
+
+      try {
+        const data = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (evt) => resolve(new Uint8Array(evt.target.result));
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+        const workbook = XLSX.read(data, { type: "array" });
+        this.originalData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+
+        this.originalData.forEach((row, index) => row._originalRowIndex = index + 1);
+        this.headers = Object.keys(this.originalData[0] || {}).filter(h => h !== '_originalRowIndex');
+        
+        this.applyFiltersAndRender();
+        
+        this.resetBtn.disabled = false;
+        this.submitBtn.disabled = false;
+        this.submitBtn.classList.remove('loading');
+        this.submitBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5858 13.4142 7.75736 10.5858 6.34315 12 10.5858 16.2426 17.6569 9.17157 16.2426 7.75736 10.5858 13.4142z"/><path d="M12 22c5.514 0 10-4.486 10-10S17.514 2 12 2 2 6.486 2 12s4.486 10 10 10zm0-18c4.411 0 8 3.589 8 8s-3.589 8-8 8-8-3.589-8-8 3.589-8 8-8z"/></svg> Success`;
+        this.showToast("File loaded successfully!");
+        this.fileInfo.innerHTML = `Viewing: <span class="filename">${file.name}</span>`;
+      } catch (error) {
+        console.error("Error processing file:", error);
+        this.showToast("Error processing file. Please try again.", 5000);
+        this.submitBtn.classList.remove('loading');
+        this.submitBtn.disabled = false;
+        this.submitBtn.innerHTML = `Upload`;
+        this.fileInfo.textContent = 'Failed to load file.';
+      }
+    }
+
+    resetApp() {
+      this.originalData = [];
+      this.filteredData = [];
+      this.container.innerHTML = "";
+      this.fileInfo.textContent = "";
+      this.fileInput.value = "";
+      this.submitBtn.disabled = true;
+      this.resetBtn.disabled = true;
+      this.commentGenerator.style.display = 'none';
+      this.showToast("App has been reset.");
+    }
+
+    renderTable(data) {
+      this.commentGenerator.style.display = (data.length > 0) ? 'flex' : 'none';
+      this.updateCommentGenerator(data);
+      
+      this.container.innerHTML = "";
+
+      if (!data.length) {
+        this.container.innerHTML = `<div class="no-data-message">No "Services (Business fee)" data found in the file.</div>`;
+        return;
+      }
+      
+      let visibleHeaders = this.headers.filter(header => !this.excludedServicesColumns.includes(header));
+      visibleHeaders.unshift('Row #');
+
+      const table = document.createElement("table");
+      table.innerHTML = `<thead><tr></tr></thead><tbody></tbody>`;
+      const headerRow = table.querySelector("thead tr");
+      const tbody = table.querySelector("tbody");
+
+      visibleHeaders.forEach((header) => {
+        const th = document.createElement("th");
+        th.textContent = header === 'Row #' ? '#' : header;
+        headerRow.appendChild(th);
+      });
+
+      let rowsHtml = '';
+      data.forEach(row => {
+        rowsHtml += `<tr><td class="row-number-cell">${row._originalRowIndex}</td>`;
+        visibleHeaders.slice(1).forEach(h => { rowsHtml += `<td>${row[h]}</td>`; });
+        rowsHtml += `</tr>`;
+      });
+      tbody.innerHTML = rowsHtml;
+      
+      this.container.appendChild(table);
+    }
+      
+    updateCommentGenerator(data) {
+        if (!data || data.length === 0) {
+            this.serviceCommentText.textContent = ''; this.startTimeCommentText.textContent = '';
+            this.endTimeCommentText.textContent = ''; this.amountCommentText.textContent = '';
+            return;
+        }
+        const uniqueChannels = [...new Set(data.map(row => row['Channel']).filter(Boolean))];
+        this.serviceCommentText.textContent = `(${uniqueChannels.join(' - ') || 'N/A'})`;
+        this.startTimeCommentText.textContent = data[data.length - 1]?.['Start Time'] || 'N/A';
+        this.endTimeCommentText.textContent = data[0]?.['End Time'] || 'N/A';
+
+        // حساب المجموع الكلي ثم ضربه في 1.2312
+        const totalAmount = data.reduce((sum, row) => {
+            return sum + (parseFloat(String(row['Total Fee']).replace(/[^0-9.-]+/g, '')) || 0);
+        }, 0);
+        
+        const finalAmount = totalAmount * 1.2312;
+        this.amountCommentText.textContent = `${finalAmount.toFixed(2)} LE`;
+    }
+      
+    copyGeneratedComment() {
+        if (this.copyCommentBtn.disabled) return;
+        const comment = [
+            `CST denied his subscription to the service ${this.serviceCommentText.textContent}`,
+            `Start Time : ${this.startTimeCommentText.textContent}`,
+            `End Time : ${this.endTimeCommentText.textContent}`,
+            `Amount : ${this.amountCommentText.textContent}`
+        ].join('\n');
+        navigator.clipboard.writeText(comment).then(() => {
+            this.showToast('Comment copied to clipboard!');
+            const originalContent = this.copyCommentBtn.innerHTML;
+            this.copyCommentBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg> Copied!`;
+            this.copyCommentBtn.classList.add('success');
+            this.copyCommentBtn.disabled = true;
+            setTimeout(() => {
+                this.copyCommentBtn.innerHTML = originalContent;
+                this.copyCommentBtn.classList.remove('success');
+                this.copyCommentBtn.disabled = false;
+            }, 2000);
+        }).catch(() => this.showToast('Failed to copy comment.', 3000));
+    }
+
+    applyFiltersAndRender() {
+      this.filteredData = this.originalData.filter(row => 
+        Object.values(row).some(val => String(val).includes("Business fee charged by balance"))
+      );
+      this.renderTable(this.filteredData);
+    }
+  }
+</script>
+
+<!-- Anti-Developer Protection Code -->
+<script>
+  DisableDevtool({
+    ondevtoolopen: (type) => {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (!isMobile) {
+        window.location.href = 'about:blank';
+      }
+    },
+    disableMenu: true,
+    disableSelect: false,
+    disableCopy: false,
+    disableCut: false,
+    disablePaste: false,
+    clearLog: true,
+    interval: 500
+  });
+</script>
+
+</body>
+</html>

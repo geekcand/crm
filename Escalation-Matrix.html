@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escalation Matrix Sheet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --secondary-bg-color: #ffffff;
+            --text-color: #0f172a;
+            --subtle-text-color: #64748b;
+            --border-color: #e2e8f0;
+            --primary-color: #4f46e5;
+            --primary-hover-color: #4338ca;
+            --gm-bg: rgba(16, 185, 129, 0.07);
+            --gm-border: #10b981;
+            --dh-bg: rgba(239, 68, 68, 0.07);
+            --dh-border: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #020617;
+            --secondary-bg-color: #0f172a;
+            --text-color: #e2e8f0;
+            --subtle-text-color: #94a3b8;
+            --border-color: #334155;
+            --primary-color: #818cf8;
+            --primary-hover-color: #6366f1;
+            --gm-bg: rgba(52, 211, 153, 0.1);
+            --gm-border: #34d399;
+            --dh-bg: rgba(248, 113, 113, 0.1);
+            --dh-border: #f87171;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -2px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+            padding-bottom: 5rem; /* Space for the fixed footer */
+        }
+
+        .container {
+            max-width: 95%;
+            margin: 2rem auto 0 auto;
+            padding: 1rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+        .header-title h1 { font-size: 2.25rem; font-weight: 700; }
+        .header-title p { font-size: 1.1rem; color: var(--subtle-text-color); margin-top: 0.25rem; }
+        
+        .theme-toggle {
+            background-color: var(--secondary-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem; width: 48px; height: 48px;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+            box-shadow: var(--shadow); transition: all 0.2s;
+        }
+        .theme-toggle:hover { transform: scale(1.05); border-color: var(--primary-color); }
+        .theme-toggle svg { color: var(--subtle-text-color); }
+        .theme-toggle .icon-sun { display: none; }
+        [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+        [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+        .card {
+            background-color: var(--secondary-bg-color);
+            border-radius: 1.25rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            padding: 2rem 2.5rem;
+            transition: background-color 0.3s, border-color 0.3s;
+            overflow: hidden;
+        }
+        
+        .toolbar {
+            display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; gap: 1.5rem; margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .filter-controls { display: flex; flex-grow: 1; gap: 1rem; }
+        
+        #categoryFilter, #searchInput {
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .search-container { flex-grow: 1; position: relative; }
+        #searchInput {
+            padding-left: 2.75rem;
+        }
+
+        #categoryFilter:hover, #searchInput:hover {
+            border-color: color-mix(in srgb, var(--subtle-text-color) 50%, transparent);
+        }
+
+        #categoryFilter:focus, #searchInput:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: var(--secondary-bg-color);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+        
+        .search-icon {
+            position: absolute;
+            top: 50%;
+            left: 1rem;
+            transform: translateY(-50%);
+            color: var(--subtle-text-color);
+            pointer-events: none;
+            transition: color 0.2s ease-in-out;
+        }
+
+        #searchInput:focus + .search-icon {
+            color: var(--primary-color);
+        }
+
+        .file-upload-label {
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color); color: white; border-radius: 0.75rem;
+            cursor: pointer; font-size: 1rem; font-weight: 500;
+            transition: background-color 0.3s ease; white-space: nowrap;
+        }
+        .file-upload-label:hover { background-color: var(--primary-hover-color); }
+        
+        .status-container { text-align: center; padding: 4rem 1rem; }
+        .status-container p { font-size: 1.1rem; color: var(--subtle-text-color); }
+        
+        .loader-container { padding: 4rem 1rem; text-align: center; }
+        .loader {
+            border: 5px solid color-mix(in srgb, var(--primary-color) 20%, transparent);
+            border-top: 5px solid var(--primary-color); border-radius: 50%;
+            width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 1rem auto;
+        }
+        .hidden { display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #excelData { width: 100%; border-collapse: separate; border-spacing: 0; }
+        #excelData th, #excelData td {
+            padding: 1rem 1.25rem; text-align: left; white-space: nowrap;
+            border-bottom: 1px solid var(--border-color);
+        }
+        #excelData thead th {
+            background-color: var(--secondary-bg-color); font-weight: 500; color: var(--subtle-text-color);
+            position: sticky; top: 0; z-index: 10; font-size: 0.9rem; text-transform: uppercase;
+        }
+        #excelData tbody tr { transition: background-color 0.2s ease; }
+        #excelData tbody tr:hover { background-color: color-mix(in srgb, var(--primary-color) 5%, transparent); }
+
+        .general-manager { background-color: var(--gm-bg); }
+        .department-head { background-color: var(--dh-bg); }
+        .general-manager td:first-child { border-left: 4px solid var(--gm-border); }
+        .department-head td:first-child { border-left: 4px solid var(--dh-border); }
+
+        .copy-button {
+            background: none; border: none; cursor: pointer; padding: 0.25rem; border-radius: 50%;
+            vertical-align: middle; opacity: 0; color: var(--subtle-text-color);
+            transition: opacity 0.2s, background-color 0.2s, color 0.2s; margin-right: 0.5rem;
+        }
+        #excelData tr:hover .copy-button { opacity: 0.7; }
+        .copy-button:hover {
+            opacity: 1; background-color: color-mix(in srgb, var(--primary-color) 15%, transparent);
+            color: var(--primary-color);
+        }
+
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #0f172a; color: #fff; text-align: center;
+            border-radius: 0.75rem; padding: 1rem; position: fixed; z-index: 100; left: 50%; bottom: 30px;
+            transform: translateX(-50%); font-size: 1rem; transition: all 0.5s; opacity: 0;
+            box-shadow: var(--shadow-lg);
+        }
+        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+        [data-theme="dark"] #toast { background-color: #e2e8f0; color: #1a202c; }
+        
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            z-index: 100;
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 0.9rem;
+            color: var(--subtle-text-color);
+            background-color: var(--secondary-bg-color);
+            border-top: 1px solid var(--border-color);
+            transition: color 0.3s, border-color 0.3s, background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <h1>Escalation Matrix</h1>
+                <p>Upload an Excel file to display and search its data.</p>
+            </div>
+            <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </button>
+        </header>
+
+        <div class="card">
+            <div class="toolbar">
+                <div class="filter-controls">
+                    <select id="categoryFilter" disabled>
+                        <option value="All">جميع الفئات</option>
+                        <option value="General Manager">مدير عام</option>
+                        <option value="Department Head">رئيس قطاع</option>
+                    </select>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search data..." disabled>
+                        <div class="search-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <label for="excelFileInput" class="file-upload-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span>Upload Excel</span>
+                </label>
+                <input type="file" id="excelFileInput" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden/>
+            </div>
+
+            <main>
+                <div id="statusContainer" class="status-container">
+                    <p>Upload an Excel file to start viewing the data.</p>
+                </div>
+                
+                <div id="loaderContainer" class="loader-container hidden">
+                    <div class="loader"></div>
+                    <p>Processing data...</p>
+                </div>
+
+                <div id="tableWrapper" class="table-wrapper hidden">
+                    <table id="excelData"></table>
+                    <div id="noResults" class="status-container hidden">
+                        <p>No results match your filter criteria.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <p></p>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    
+    <script>
+        const fileInput = document.getElementById('excelFileInput');
+        const tableElement = document.getElementById('excelData');
+        const tableWrapper = document.getElementById('tableWrapper');
+        const loaderContainer = document.getElementById('loaderContainer');
+        const statusContainer = document.getElementById('statusContainer');
+        const toast = document.getElementById('toast');
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const noResults = document.getElementById('noResults');
+        const themeToggle = document.getElementById('themeToggle');
+
+        fileInput.addEventListener('change', handleFileSelect);
+        searchInput.addEventListener('input', applyFilter);
+        categoryFilter.addEventListener('change', applyFilter);
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.zoom = "75%";
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+        });
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+        }
+
+        function handleFileSelect(event) {
+            statusContainer.classList.add('hidden');
+            tableWrapper.classList.add('hidden');
+            loaderContainer.classList.remove('hidden');
+            searchInput.disabled = true;
+            categoryFilter.disabled = true;
+
+            const file = event.target.files[0];
+            if (!file) {
+                loaderContainer.classList.add('hidden');
+                statusContainer.classList.remove('hidden');
+                return;
+            }
+            
+            setTimeout(() => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    processExcelData(data);
+                };
+                reader.readAsArrayBuffer(file);
+            }, 500);
+        }
+
+        function processExcelData(data) {
+            try {
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const html = XLSX.utils.sheet_to_html(worksheet);
+                
+                tableElement.innerHTML = html;
+                enhanceTable(tableElement);
+
+                tableWrapper.classList.remove('hidden');
+                searchInput.disabled = false;
+                categoryFilter.disabled = false;
+                searchInput.value = '';
+                categoryFilter.value = 'All';
+                applyFilter();
+
+            } catch (error) {
+                console.error("Error processing Excel file:", error);
+                statusContainer.querySelector('p').textContent = 'Error: Could not process the file. Please ensure it is a valid, unprotected Excel file.';
+                statusContainer.classList.remove('hidden');
+            } finally {
+                loaderContainer.classList.add('hidden');
+            }
+        }
+
+        function enhanceTable(table) {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length === 0) return;
+                
+                let rowTextContent = '';
+                let rowCategory = '';
+
+                cells.forEach(cell => {
+                    const cellText = cell.textContent.trim().toLowerCase();
+                    rowTextContent += cellText + ' ';
+                    
+                    if (cellText === 'مدير عام' || cellText === 'general manager') {
+                        row.classList.add('general-manager');
+                        rowCategory = 'General Manager';
+                    }
+                    else if (cellText === 'رئيس قطاع' || cellText === 'department head') {
+                        row.classList.add('department-head');
+                        rowCategory = 'Department Head';
+                    }
+                    
+                    if (cell.textContent.trim().includes('@te.eg')) {
+                        addCopyToCell(cell, cell.textContent.trim());
+                    }
+                });
+                row.dataset.search = rowTextContent;
+                row.dataset.category = rowCategory;
+            });
+        }
+
+        function applyFilter() {
+            const query = searchInput.value.toLowerCase().trim();
+            const category = categoryFilter.value;
+            const rows = tableElement.querySelectorAll('tbody tr');
+            let visibleRows = 0;
+
+            rows.forEach(row => {
+                const searchData = row.dataset.search || '';
+                const rowCategory = row.dataset.category || '';
+
+                const categoryMatch = (category === 'All' || rowCategory === category);
+                const searchMatch = searchData.includes(query);
+
+                if (categoryMatch && searchMatch) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (visibleRows === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+        }
+
+        function addCopyToCell(cell, emailText) {
+            const copyButton = document.createElement('button');
+            copyButton.className = 'copy-button';
+            copyButton.title = 'Copy Email';
+            copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3z"/></svg>`;
+            
+            copyButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                copyToClipboard(emailText);
+            });
+            
+            cell.prepend(copyButton);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`Copied: ${text}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed!');
+            });
+        }
+
+        let toastTimeout;
+        function showToast(message) {
+            clearTimeout(toastTimeout);
+            toast.textContent = message;
+            toast.className = "toast show";
+            toastTimeout = setTimeout(() => {
+                toast.className = toast.className.replace("show", "");
+            }, 3000);
+        }
+    </script>
+
+<!-- #################### START: Anti-Developer Protection Code #################### -->
+<script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool@latest'></script>
+<script>
+! function (e, t) { "object" == typeof exports && "undefined" != typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define(t) : (e = "undefined" != typeof globalThis ? globalThis : e || self).DisableDevtool = t() }(this, function () { "use strict"; function i(e) { return (i = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (e) { return typeof e } : function (e) { return e && "function" == typeof Symbol && e.constructor === Symbol && e !== Symbol.prototype ? "symbol" : typeof e })(e) } function o(e, t) { if (!(e instanceof t)) throw new TypeError("Cannot call a class as a function") } function r(e, t) { for (var n = 0; n < t.length; n++) { var o = t[n]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, o.key, o) } } function u(e, t, n) { t && r(e.prototype, t), n && r(e, n), Object.defineProperty(e, "prototype", { writable: !1 }) } function e(e, t, n) { t in e ? Object.defineProperty(e, t, { value: n, enumerable: !0, configurable: !0, writable: !0 }) : e[t] = n } function n(e, t) { if ("function" != typeof t && null !== t) throw new TypeError("Super expression must either be null or a function"); e.prototype = Object.create(t && t.prototype, { constructor: { value: e, writable: !0, configurable: !0 } }), Object.defineProperty(e, "prototype", { writable: !1 }), t && a(e, t) } function c(e) { return (c = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (e) { return e.__proto__ || Object.getPrototypeOf(e) })(e) } function a(e, t) { return (a = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (e, t) { return e.__proto__ = t, e })(e, t) } function q(e, t) { if (t && ("object" == typeof t || "function" == typeof t)) return t; if (void 0 !== t) throw new TypeError("Derived constructors may only return object or undefined"); t = e; if (void 0 === t) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return t } function l(n) { var o = function () { if ("undefined" == typeof Reflect || !Reflect.construct) return !1; if (Reflect.construct.sham) return !1; if ("function" == typeof Proxy) return !0; try { return Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () { })), !0 } catch (e) { return !1 } }(); return function () { var e, t = c(n); return q(this, o ? (e = c(this).constructor, Reflect.construct(t, arguments, e)) : t.apply(this, arguments)) } } function f(e, t) { (null == t || t > e.length) && (t = e.length); for (var n = 0, o = new Array(t); n < t; n++)o[n] = e[n]; return o } function s(e, t) { var n, o = "undefined" != typeof Symbol && e[Symbol.iterator] || e["@@iterator"]; if (!o) { if (Array.isArray(e) || (o = function (e, t) { if (e) { if ("string" == typeof e) return f(e, t); var n = Object.prototype.toString.call(e).slice(8, -1); return "Map" === (n = "Object" === n && e.constructor ? e.constructor.name : n) || "Set" === n ? Array.from(e) : "Arguments" === n || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n) ? f(e, t) : void 0 } }(e)) || t && e && "number" == typeof e.length) return o && (e = o), n = 0, { s: t = function () { }, n: function () { return n >= e.length ? { done: !0 } : { done: !1, value: e[n++] } }, e: function (e) { throw e }, f: t }; throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.") } var i, r = !0, u = !1; return { s: function () { o = o.call(e) }, n: function () { var e = o.next(); return r = e.done, e }, e: function (e) { u = !0, i = e }, f: function () { try { r || null == o.return || o.return() } finally { if (u) throw i } } } } var d = !1, t = {}; function v(e) { t[e] = !1 } function z() { for (var e in t) if (t[e]) return d = !0; return d = !1 } function h() { return (new Date).getTime() } function B(e) { var t = h(); return e(), h() - t } function W(n, o) { function e(t) { return function () { n && n(); var e = t.apply(void 0, arguments); return o && o(), e } } var t = window.alert, i = window.confirm, r = window.prompt; try { window.alert = e(t), window.confirm = e(i), window.prompt = e(r) } catch (e) { } } var p = { iframe: !1, pc: !1, qqBrowser: !1, firefox: !1, macos: !1, edge: !1, oldEdge: !1, ie: !1, iosChrome: !1, iosEdge: !1, chrome: !1, seoBot: !1 }; function U() { function e(e) { return -1 !== t.indexOf(e) } var t = navigator.userAgent.toLowerCase(), n = !!window.top && window !== window.top, o = !/(iphone|ipad|ipod|ios|android)/i.test(t), i = e("qqbrowser"), r = e("firefox"), u = e("macintosh"), c = e("edge"), a = c && !e("chrome"), l = a || e("trident") || e("msie"), f = e("crios"), s = e("edgios"), d = e("chrome") || f, v = /(googlebot|baiduspider|bingbot|applebot|petalbot|yandexbot|bytespider|chrome\-lighthouse)/i.test(t); Object.assign(p, { iframe: n, pc: o, qqBrowser: i, firefox: r, macos: u, edge: c, oldEdge: a, ie: l, iosChrome: f, iosEdge: s, chrome: d, seoBot: v }) } function H() { for (var e = function () { for (var e = {}, t = 0; t < 500; t++)e["".concat(t)] = "".concat(t); return e }(), t = [], n = 0; n < 50; n++)t.push(e); return t } var K = "", V = !1; function F() { var e = b.ignore; if (e) { if ("function" == typeof e) return e(); if (0 !== e.length) { var t = location.href; if (K === t) return V; K = t; var n, o = !1, i = s(e); try { for (i.s(); !(n = i.n()).done;) { var r = n.value; if ("string" == typeof r) { if (-1 !== t.indexOf(r)) { o = !0; break } } else if (r.test(t)) { o = !0; break } } } catch (e) { i.e(e) } finally { i.f() } return V = o } } } var M = 0, X = 0, N = [], $ = 0; function G(i) { function e() { l = !0 } function t() { l = !1 } var n, o, r, u, c, a, l = !1; function f() { (a[u] === r ? o : n)() } W(e, t), n = t, o = e, void 0 !== (a = document).hidden ? (r = "hidden", c = "visibilitychange", u = "visibilityState") : void 0 !== a.mozHidden ? (r = "mozHidden", c = "mozvisibilitychange", u = "mozVisibilityState") : void 0 !== a.msHidden ? (r = "msHidden", c = "msvisibilitychange", u = "msVisibilityState") : void 0 !== a.webkitHidden && (r = "webkitHidden", c = "webkitvisibilitychange", u = "webkitVisibilityState"), a.removeEventListener(c, f, !1), a.addEventListener(c, f, !1), M = window.setInterval(function () { if (!(i.isSuspend || l || F())) { var e, t, n = s(N); try { for (n.s(); !(e = n.n()).done;) { var o = e.value; v(o.type), o.detect($++) } } catch (e) { n.e(e) } finally { n.f() } T(), "function" == typeof b.ondevtoolclose && (t = d, !z() && t && b.ondevtoolclose()) } }, b.interval), X = setTimeout(function () { p.pc || y() }, b.stopIntervalTime) } function y() { window.clearInterval(M) } function Y() { if (b.url) window.location.href = b.url; else { try { window.opener = null, window.open("", "_self"), window.close(), window.history.back() } catch (e) { console.log(e) } setTimeout(function () { window.location.href = "https://theajack.github.io/disable-devtool/404.html?h=".concat(encodeURIComponent(location.host)) }, 500) } } var b = { md5: "", ondevtoolopen: Y, ondevtoolclose: null, url: "", tkName: "ddtk", interval: 200, disableMenu: !0, stopIntervalTime: 5e3, clearIntervalWhenDevOpenTrigger: !1, detectors: "all", clearLog: !0, disableSelect: !1, disableCopy: !1, disableCut: !1, disablePaste: !1, ignore: null, disableIframeParents: !0, seo: !0 }, J = ["detectors", "ondevtoolclose", "ignore"]; function Q(e) { var t, n = 0 < arguments.length && void 0 !== e ? e : {}; for (t in b) { var o = t; void 0 === n[o] || i(b[o]) !== i(n[o]) && -1 === J.indexOf(o) || (b[o] = n[o]) } "function" == typeof b.ondevtoolclose && !0 === b.clearIntervalWhenDevOpenTrigger && (b.clearIntervalWhenDevOpenTrigger = !1, console.warn("【DISABLE-DEVTOOL】clearIntervalWhenDevOpenTrigger 在使用 ondevtoolclose 时无效")) } var w, g, Z, m = window.console || { log: function () { }, table: function () { }, clear: function () { } }; function T() { b.clearLog && Z() } var ee = function () { return !1 }; function O(n) { var e, o = 74, i = 73, r = 85, u = 83, c = 123, a = p.macos ? function (e, t) { return e.metaKey && e.altKey && (t === i || t === o) } : function (e, t) { return e.ctrlKey && e.shiftKey && (t === i || t === o) }, l = p.macos ? function (e, t) { return e.metaKey && e.altKey && t === r || e.metaKey && t === u } : function (e, t) { return e.ctrlKey && (t === u || t === r) }; n.addEventListener("keydown", function (e) { var t = (e = e || n.event).keyCode || e.which; if (t === c || a(e, t) || l(e, t)) return te(n, e) }, !0), e = n, b.disableMenu && D(e, "contextmenu"), e = n, b.disableSelect && D(e, "selectstart"), e = n, b.disableCopy && D(e, "copy"), e = n, b.disableCut && D(e, "cut"), e = n, b.disablePaste && D(e, "paste") } function D(t, e) { t.addEventListener(e, function (e) { return te(t, e) }) } function te(e, t) { if (!F() && !ee()) return (t = t || e.event).returnValue = !1, t.preventDefault(), !1 } var S = 8; function ne(e) { for (var t = function (e, t) { e[t >> 5] |= 128 << t % 32, e[14 + (t + 64 >>> 9 << 4)] = t; for (var n = 1732584193, o = -271733879, i = -1732584194, r = 271733878, u = 0; u < e.length; u += 16) { var c = n, a = o, l = i, f = r; n = P(n, o, i, r, e[u + 0], 7, -680876936), r = P(r, n, o, i, e[u + 1], 12, -389564586), i = P(i, r, n, o, e[u + 2], 17, 606105819), o = P(o, i, r, n, e[u + 3], 22, -1044525330), n = P(n, o, i, r, e[u + 4], 7, -176418897), r = P(r, n, o, i, e[u + 5], 12, 1200080426), i = P(i, r, n, o, e[u + 6], 17, -1473231341), o = P(o, i, r, n, e[u + 7], 22, -45705983), n = P(n, o, i, r, e[u + 8], 7, 1770035416), r = P(r, n, o, i, e[u + 9], 12, -1958414417), i = P(i, r, n, o, e[u + 10], 17, -42063), o = P(o, i, r, n, e[u + 11], 22, -1990404162), n = P(n, o, i, r, e[u + 12], 7, 1804603682), r = P(r, n, o, i, e[u + 13], 12, -40341101), i = P(i, r, n, o, e[u + 14], 17, -1502002290), o = P(o, i, r, n, e[u + 15], 22, 1236535329), n = x(n, o, i, r, e[u + 1], 5, -165796510), r = x(r, n, o, i, e[u + 6], 9, -1069501632), i = x(i, r, n, o, e[u + 11], 14, 643717713), o = x(o, i, r, n, e[u + 0], 20, -373897302), n = x(n, o, i, r, e[u + 5], 5, -701558691), r = x(r, n, o, i, e[u + 10], 9, 38016083), i = x(i, r, n, o, e[u + 15], 14, -660478335), o = x(o, i, r, n, e[u + 4], 20, -405537848), n = x(n, o, i, r, e[u + 9], 5, 568446438), r = x(r, n, o, i, e[u + 14], 9, -1019803690), i = x(i, r, n, o, e[u + 3], 14, -187363961), o = x(o, i, r, n, e[u + 8], 20, 1163531501), n = x(n, o, i, r, e[u + 13], 5, -1444681467), r = x(r, n, o, i, e[u + 2], 9, -51403784), i = x(i, r, n, o, e[u + 7], 14, 1735328473), o = x(o, i, r, n, e[u + 12], 20, -1926607734), n = j(n, o, i, r, e[u + 5], 4, -378558), r = j(r, n, o, i, e[u + 8], 11, -2022574463), i = j(i, r, n, o, e[u + 11], 16, 1839030562), o = j(o, i, r, n, e[u + 14], 23, -35309556), n = j(n, o, i, r, e[u + 1], 4, -1530992060), r = j(r, n, o, i, e[u + 4], 11, 1272893353), i = j(i, r, n, o, e[u + 7], 16, -155497632), o = j(o, i, r, n, e[u + 10], 23, -1094730640), n = j(n, o, i, r, e[u + 13], 4, 681279174), r = j(r, n, o, i, e[u + 0], 11, -358537222), i = j(i, r, n, o, e[u + 3], 16, -722521979), o = j(o, i, r, n, e[u + 6], 23, 76029189), n = j(n, o, i, r, e[u + 9], 4, -640364487), r = j(r, n, o, i, e[u + 12], 11, -421815835), i = j(i, r, n, o, e[u + 15], 16, 530742520), o = j(o, i, r, n, e[u + 2], 23, -995338651), n = I(n, o, i, r, e[u + 0], 6, -198630844), r = I(r, n, o, i, e[u + 7], 10, 1126891415), i = I(i, r, n, o, e[u + 14], 15, -1416354905), o = I(o, i, r, n, e[u + 5], 21, -57434055), n = I(n, o, i, r, e[u + 12], 6, 1700485571), r = I(r, n, o, i, e[u + 3], 10, -1894986606), i = I(i, r, n, o, e[u + 10], 15, -1051523), o = I(o, i, r, n, e[u + 1], 21, -2054922799), n = I(n, o, i, r, e[u + 8], 6, 1873313359), r = I(r, n, o, i, e[u + 15], 10, -30611744), i = I(i, r, n, o, e[u + 6], 15, -1560198380), o = I(o, i, r, n, e[u + 13], 21, 1309151649), n = I(n, o, i, r, e[u + 4], 6, -145523070), r = I(r, n, o, i, e[u + 11], 10, -1120210379), i = I(i, r, n, o, e[u + 2], 15, 718787259), o = I(o, i, r, n, e[u + 9], 21, -343485551), n = E(n, c), o = E(o, a), i = E(i, l), r = E(r, f) } return Array(n, o, i, r) }(function (e) { for (var t = Array(), n = (1 << S) - 1, o = 0; o < e.length * S; o += S)t[o >> 5] |= (e.charCodeAt(o / S) & n) << o % 32; return t }(e), e.length * S), n = "0123456789abcdef", o = "", i = 0; i < 4 * t.length; i++)o += n.charAt(t[i >> 2] >> i % 4 * 8 + 4 & 15) + n.charAt(t[i >> 2] >> i % 4 * 8 & 15); return o } function k(e, t, n, o, i, r) { return E((t = E(E(t, e), E(o, r))) << i | t >>> 32 - i, n) } function P(e, t, n, o, i, r, u) { return k(t & n | ~t & o, e, t, i, r, u) } function x(e, t, n, o, i, r, u) { return k(t & o | n & ~o, e, t, i, r, u) } function j(e, t, n, o, i, r, u) { return k(t ^ n ^ o, e, t, i, r, u) } function I(e, t, n, o, i, r, u) { return k(n ^ (t | ~o), e, t, i, r, u) } function E(e, t) { var n = (65535 & e) + (65535 & t); return (e >> 16) + (t >> 16) + (n >> 16) << 16 | 65535 & n } (C = _ = _ || {})[C.Unknown = -1] = "Unknown", C[C.RegToString = 0] = "RegToString", C[C.DefineId = 1] = "DefineId", C[C.Size = 2] = "Size", C[C.DateToString = 3] = "DateToString", C[C.FuncToString = 4] = "FuncToString", C[C.Debugger = 5] = "Debugger", C[C.Performance = 6] = "Performance", C[C.DebugLib = 7] = "DebugLib"; var _, A = function () { function n(e) { var t = e.type, e = e.enabled, e = void 0 === e || e; o(this, n), this.type = _.Unknown, this.enabled = !0, this.type = t, this.enabled = e, this.enabled && (t = this, N.push(t), this.init()) } return u(n, [{ key: "onDevToolOpen", value: function () { var e; console.warn("You ar not allow to use DEVTOOL! 【type = ".concat(this.type, "】")), b.clearIntervalWhenDevOpenTrigger && y(), window.clearTimeout(X), b.ondevtoolopen(this.type, Y), e = this.type, t[e] = !0 } }, { key: "init", value: function () { } }]), n }(), C = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.RegToString, enabled: p.qqBrowser || p.firefox }) } return u(t, [{ key: "init", value: function () { var t = this; this.lastTime = 0, this.reg = /./, w(this.reg), this.reg.toString = function () { var e; return p.qqBrowser ? (e = (new Date).getTime(), t.lastTime && e - t.lastTime < 100 ? t.onDevToolOpen() : t.lastTime = e) : p.firefox && t.onDevToolOpen(), "" } } }, { key: "detect", value: function () { w(this.reg) } }]), t }(), oe = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.DefineId }) } return u(t, [{ key: "init", value: function () { var e = this; this.div = document.createElement("div"), this.div.__defineGetter__("id", function () { e.onDevToolOpen() }), Object.defineProperty(this.div, "id", { get: function () { e.onDevToolOpen() } }) } }, { key: "detect", value: function () { w(this.div) } }]), t }(), ie = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.Size, enabled: !p.iframe && !p.edge }) } return u(t, [{ key: "init", value: function () { var e = this; this.checkWindowSizeUneven(), window.addEventListener("resize", function () { setTimeout(function () { e.checkWindowSizeUneven() }, 100) }, !0) } }, { key: "detect", value: function () { } }, { key: "checkWindowSizeUneven", value: function () { var e = function () { if (re(window.devicePixelRatio)) return window.devicePixelRatio; var e = window.screen; return !(re(e) || !e.deviceXDPI || !e.logicalXDPI) && e.deviceXDPI / e.logicalXDPI }(); if (!1 !== e) { var t = 200 < window.outerWidth - window.innerWidth * e, e = 300 < window.outerHeight - window.innerHeight * e; if (t || e) return this.onDevToolOpen(), !1; v(this.type) } return !0 } }]), t }(); function re(e) { return null != e } var R, ue = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.DateToString, enabled: !p.iosChrome && !p.iosEdge }) } return u(t, [{ key: "init", value: function () { var e = this; this.count = 0, this.date = new Date, this.date.toString = function () { return e.count++, "" } } }, { key: "detect", value: function () { this.count = 0, w(this.date), T(), 2 <= this.count && this.onDevToolOpen() } }]), t }(), ce = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.FuncToString, enabled: !p.iosChrome && !p.iosEdge }) } return u(t, [{ key: "init", value: function () { var e = this; this.count = 0, this.func = function () { }, this.func.toString = function () { return e.count++, "" } } }, { key: "detect", value: function () { this.count = 0, w(this.func), T(), 2 <= this.count && this.onDevToolOpen() } }]), t }(), ae = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.Debugger, enabled: p.iosChrome || p.iosEdge }) } return u(t, [{ key: "detect", value: function () { var e = h(); 100 < h() - e && this.onDevToolOpen() } }]), t }(), le = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.Performance, enabled: p.chrome }) } return u(t, [{ key: "init", value: function () { this.maxPrintTime = 0, this.largeObjectArray = H() } }, { key: "detect", value: function () { var e = this, t = B(function () { g(e.largeObjectArray) }), n = B(function () { w(e.largeObjectArray) }); if (this.maxPrintTime = Math.max(this.maxPrintTime, n), T(), 0 === t || 0 === this.maxPrintTime) return !1; t > 10 * this.maxPrintTime && this.onDevToolOpen() } }]), t }(), fe = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.DebugLib }) } return u(t, [{ key: "init", value: function () { } }, { key: "detect", value: function () { var e; (!0 === (null == (e = null == (e = window.eruda) ? void 0 : e._devTools) ? void 0 : e._isShow) || window._vcOrigConsole && window.document.querySelector("#__vconsole.vc-toggle")) && this.onDevToolOpen() } }]), t }(), se = (e(R = {}, _.RegToString, C), e(R, _.DefineId, oe), e(R, _.Size, ie), e(R, _.DateToString, ue), e(R, _.FuncToString, ce), e(R, _.Debugger, ae), e(R, _.Performance, le), e(R, _.DebugLib, fe), R); var L = Object.assign(function (e) { if (U(), Z = p.ie ? (w = function () { return m.log.apply(m, arguments) }, g = function () { return m.table.apply(m, arguments) }, function () { return m.clear() }) : (w = m.log, g = m.table, m.clear), Q(e), !(b.md5 && ne(function (e) { var t = window.location.search, n = window.location.hash; if ("" !== (t = "" === t && "" !== n ? "?".concat(n.split("?")[1]) : t) && void 0 !== t) { n = new RegExp("(^|&)" + e + "=([^&]*)(&|$)", "i"), e = t.substr(1).match(n); if (null != e) return unescape(e[2]) } return "" }(b.tkName)) === b.md5 || b.seo && p.seoBot)) { L.isRunning = !0, G(L); var t = L, n = (ee = function () { return t.isSuspend }, window.top), o = window.parent; if (O(window), b.disableIframeParents && n && o && n !== window) { for (; o !== n;)O(o), o = o.parent; O(n) } ("all" === b.detectors ? Object.keys(se) : b.detectors).forEach(function (e) { new se[e] }) } }, { isRunning: !1, isSuspend: !1, md5: ne, version: "0.3.4", DetectorType: _, isDevToolOpened: z }); C = function () { if (!window || !window.document) return null; var n = document.querySelector("[disable-devtool-auto]"); if (!n) return null; var o = ["disable-menu", "disable-select", "disable-copy", "disable-cut", "disable-paste", "clear-log"], i = ["interval"], r = {}; return ["md5", "url", "tk-name", "detectors"].concat(o, i).forEach(function (e) { var t = n.getAttribute(e); null !== t && (-1 !== i.indexOf(e) ? t = parseInt(t) : -1 !== o.indexOf(e) ? t = "false" !== t : "detector" === e && "all" !== t && (t = t.split(" ")), r[function (e) { if (-1 === e.indexOf("-")) return e; var t = !1; return e.split("").map(function (e) { return "-" === e ? (t = !0, "") : t ? (t = !1, e.toUpperCase()) : e }).join("") }(e)] = t) }), r }(); return C && L(C), L }); 
+</script>
+
+<script>
+  DisableDevtool({
+      // 1. URL to redirect to when DevTools is opened
+      url: 'about:blank',
+      // 2. Disable right-click context menu
+      disableMenu: true,
+      // 3. This function is triggered when DevTools is closed
+      ondevtoolclose: () => {
+          // You could show a message or reload the page, for example
+          // alert('Thanks for closing DevTools!');
+          // window.location.reload();
+      },
+  });
+</script>
+<!-- #################### END: Anti-Theft Script (DIRECT ACTION) #################### -->
+    
+</body>
+
+</html>
+

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concession Package Formatter</title>
+    <!-- SheetJS Library for Excel Processing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f1117;
+            --card-bg: #1e222d;
+            --primary-color: #8a4bcf;
+            --primary-hover: #a164e8;
+            --text-color: #e6e8ec;
+            --text-muted: #9a9ea9;
+            --border-color: #2d3342;
+            --upload-bg: #171a23;
+            --upload-border: #8a4bcf;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            --footer-color: #a0a6b5;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary-color: #5e2d91;
+            --primary-hover: #4a2274;
+            --text-color: #2b2b2b;
+            --text-muted: #6c757d;
+            --border-color: #e0e0e0;
+            --upload-bg: #faf8fc;
+            --upload-border: #5e2d91;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --footer-color: #555555;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        }
+
+        html, body {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-actions {
+            width: 100%;
+            max-width: 580px;
+            display: flex;
+            justify-content: flex-end;
+            padding: 15px 15px 0 15px;
+        }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--primary-color);
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 10px 15px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 520px;
+            padding: 25px 25px;
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .app-icon {
+            font-size: 34px;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            margin: 0 0 4px 0;
+            color: var(--text-color);
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--upload-border);
+            padding: 20px 15px;
+            border-radius: 10px;
+            background-color: var(--upload-bg);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 15px;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .upload-icon {
+            font-size: 26px;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+        }
+
+        .upload-text {
+            margin: 0;
+            font-size: 13.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        #fileName {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            word-break: break-all;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 11px 20px;
+            border: none;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(138, 75, 207, 0.25);
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background-color: var(--border-color);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #status {
+            margin-top: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        #status.show {
+            display: block;
+        }
+
+        .success { background-color: rgba(46, 125, 50, 0.2); color: #81c784; }
+        .error { background-color: rgba(198, 40, 40, 0.2); color: #e57373; }
+        .info { background-color: rgba(2, 136, 209, 0.2); color: #64b5f6; }
+
+        footer {
+            padding: 14px 15px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--footer-color);
+            font-weight: 700; /* Bold Footer */
+            letter-spacing: 0.4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+            <i class="fa-solid fa-sun"></i> Light Mode
+        </button>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="app-icon">
+                <i class="fa-solid fa-file-excel"></i>
+            </div>
+            <h2>Concession Package Formatter</h2>
+            <div class="subtitle">Format Consumed Offer names automatically for Concession sheets</div>
+            
+            <div class="upload-area" id="dropZone" onclick="document.getElementById('excelFile').click()">
+                <div class="upload-icon">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <p class="upload-text">Click here or drag & drop to select an Excel file (.xls / .xlsx)</p>
+                <span id="fileName"></span>
+            </div>
+            
+            <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFileSelect(event)">
+            
+            <button id="processBtn" class="btn" onclick="processExcel()" disabled>
+                <i class="fa-solid fa-gear"></i> Process and Download File
+            </button>
+
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <footer>
+
+    </footer>
+
+<script>
+    let selectedFile = null;
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeButton(savedTheme);
+    }
+
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeButton(newTheme);
+    }
+
+    function updateThemeButton(theme) {
+        const btn = document.getElementById('themeBtn');
+        if (theme === 'dark') {
+            btn.innerHTML = '<i class="fa-solid fa-sun"></i> Light Mode';
+        } else {
+            btn.innerHTML = '<i class="fa-solid fa-moon"></i> Dark Mode';
+        }
+    }
+
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+            document.getElementById('excelFile').files = files;
+            handleFileSelect({ target: { files: files } });
+        }
+    });
+
+    function handleFileSelect(event) {
+        selectedFile = event.target.files[0];
+        if (selectedFile) {
+            document.getElementById('fileName').textContent = "Selected File: " + selectedFile.name;
+            document.getElementById('processBtn').disabled = false;
+            showStatus("Ready for processing", "info");
+        }
+    }
+
+    function processExcel() {
+        if (!selectedFile) return;
+
+        showStatus("Processing data and formatting offers...", "info");
+        
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                let modifiedCount = 0;
+
+                workbook.SheetNames.forEach(sheetName => {
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                    jsonData.forEach(row => {
+                        if (row['Consumed Offer']) {
+                            let originalValue = String(row['Consumed Offer']).trim();
+
+                            const match = originalValue.match(/(?:WE\s+GOLD\s+\d+\s+)?([A-Za-z]+)\s+(\d+)\s*GBs?/i);
+
+                            if (match) {
+                                const tier = match[1]; 
+                                const gb = match[2];   
+
+                                const formattedValue = `${tier} 2 speed (${gb} GB)`;
+
+                                if (originalValue !== formattedValue) {
+                                    row['Consumed Offer'] = formattedValue;
+                                    modifiedCount++;
+                                }
+                            }
+                        }
+                    });
+
+                    const newWorksheet = XLSX.utils.json_to_sheet(jsonData);
+                    workbook.Sheets[sheetName] = newWorksheet;
+                });
+
+                const newFileName = "Concission_" + selectedFile.name.replace(/\.[^/.]+$/, "") + ".xlsx";
+                XLSX.writeFile(workbook, newFileName);
+
+                showStatus(`Success! Processed ${modifiedCount} rows and downloaded file.`, "success");
+            } catch (err) {
+                console.error(err);
+                showStatus("An error occurred while processing the file. Please check file format.", "error");
+            }
+        };
+
+        reader.readAsArrayBuffer(selectedFile);
+    }
+
+    function showStatus(text, type) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.textContent = text;
+        statusDiv.className = type + ' show';
+    }
+
+    initTheme();
+</script>
+
+</body>
+</html>

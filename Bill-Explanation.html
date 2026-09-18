@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Explanation Tool V2.3</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght=400;600;700&family=Inter:wght=400;500;600&family=Fira+Code:wght=500&display=swap" rel="stylesheet">
+    <style>
+        /* --- COLOR PALETTE & THEMES --- */
+        :root {
+            --transition-speed: 0.3s;
+            --font-main: 'Inter', sans-serif;
+            --font-arabic: 'Cairo', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f3f4f6;
+            --bg-sidebar: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --border-color: #e5e7eb;
+            --code-bg: #eff6ff;
+            --code-text: #1e40af;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --scrollbar-track: #f3f4f6;
+            --scrollbar-thumb: #d1d5db;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-sidebar: #1e293b;
+            --bg-card: #1e293b;
+            --text-primary: #f3f4f6;
+            --text-secondary: #94a3b8;
+            --accent-color: #60a5fa;
+            --accent-hover: #3b82f6;
+            --border-color: #334155;
+            --code-bg: #0f172a;
+            --code-text: #60a5fa;
+            --success-bg: #14532d;
+            --success-text: #4ade80;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --scrollbar-track: #1e293b;
+            --scrollbar-thumb: #475569;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 360px;
+            min-width: 330px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            transition: background-color var(--transition-speed);
+            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 20px 20px 10px 20px;
+            background: var(--bg-sidebar);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sidebar-header h3 { 
+            margin: 0; 
+            font-size: 15px; 
+            font-weight: 700;
+            color: var(--accent-color); 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* NEW TOP SIDEBAR MANUAL FORM */
+        .sidebar-form {
+            padding: 0 20px 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            direction: rtl;
+            font-family: var(--font-arabic);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sb-input {
+            width: 100%;
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 10px;
+            border-radius: 6px;
+            outline: none;
+            font-size: 12px;
+        }
+        .sb-input:focus { border-color: var(--accent-color); }
+        .sb-btn-group {
+            display: flex;
+            gap: 6px;
+        }
+        .sb-btn-add {
+            flex: 2;
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .sb-btn-add:hover { background: var(--accent-hover); }
+        .sb-btn-reset {
+            flex: 1;
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .sb-btn-reset:hover { background: #dc2626; }
+
+        .sidebar-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+        }
+
+        .guide-item {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .guide-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--accent-color);
+        }
+        .code-pill {
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: var(--code-text);
+            background: var(--code-bg);
+            padding: 4px 8px;
+            border-radius: 4px;
+            align-self: flex-start;
+            border: 1px solid var(--border-color);
+            font-weight: bold;
+        }
+        .desc-text {
+            font-family: var(--font-arabic);
+            font-size: 13px;
+            color: var(--text-primary);
+            text-align: right;
+            direction: rtl;
+            line-height: 1.5;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+
+        .theme-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .theme-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 16px;
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-family: var(--font-code);
+            font-size: 13px;
+            resize: vertical;
+            outline: none;
+            transition: border 0.2s;
+        }
+        textarea:focus { border-color: var(--accent-color); }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 16px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+
+        .table-container { overflow-x: auto; padding: 0; overflow: hidden; }
+        table.analysis-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        
+        table.analysis-table th {
+            text-align: left;
+            padding: 15px 20px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-body);
+        }
+
+        table.analysis-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            vertical-align: top;
+            color: var(--text-primary);
+        }
+        table.analysis-table tr:last-child td { border-bottom: none; }
+
+        .money { text-align: right; font-family: var(--font-code); white-space: nowrap; }
+        .main-amount { font-weight: 700; }
+        .out-amount { color: #10b981; }
+
+        .unknown-code {
+            color: #ef4444 !important;
+            font-weight: 700 !important;
+            background-color: rgba(239, 68, 68, 0.15) !important;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .breakdown-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .mini-val { font-size: 11px; color: var(--text-secondary); text-align: right; }
+
+        .tfoot-row td {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            border-top: 2px solid var(--border-color);
+            font-weight: bold;
+        }
+
+        /* SUMMARY BOX & ACTIONS */
+        .summary-box {
+            display: none;
+            background: var(--bg-card);
+            border-right: 4px solid var(--accent-color);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 10px;
+            direction: rtl;
+            font-family: var(--font-arabic);
+            box-shadow: var(--shadow);
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .summary-actions {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: var(--border-color); border-color: var(--accent-color); }
+
+        .summary-text {
+            white-space: pre-line;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .summary-text p {
+            margin: 4px 0;
+            padding: 0;
+            display: block;
+        }
+
+        @media (max-width: 850px) {
+            body { flex-direction: column; overflow: auto; }
+            .sidebar { width: 100%; height: auto; max-height: 350px; order: 3; border-right: none; border-top: 1px solid var(--border-color); }
+            .main-content { overflow: visible; height: auto; order: 1; padding: 20px; }
+            .summary-actions { position: relative; left: 0; top: 0; margin-bottom: 15px; justify-content: flex-end; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h3>
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            Invoice Codes Manager
+        </h3>
+    </div>
+    
+    <!-- TOP SIDEBAR MANUAL MAPPING WAJEHA -->
+    <div class="sidebar-form">
+        <input type="text" id="manualCode" class="sb-input" placeholder="كود الفاتورة (مثال: Mle Payments)">
+        <input type="text" id="manualDesc" class="sb-input" placeholder="التعريفة العربية (مثال: خدمات الفواتير)">
+        <div class="sb-btn-group">
+            <button class="sb-btn-add" onclick="saveManualCode()">إضافة وحفظ دائم 💾</button>
+            <button class="sb-btn-reset" onclick="resetToDefault()" title="إعادة لضبط المصنع وحذف الإضافات">الوضع الافتراضي 🔄</button>
+        </div>
+    </div>
+
+    <div class="sidebar-content" id="guideContainer">
+        <!-- JS will populate this -->
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+    <header>
+        <h1>Bill Explanation Tool <span style="font-weight:400; font-size: 0.6em; opacity: 0.7;">V2.3</span></h1>
+        <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
+            <span>☀️ Light Mode</span>
+        </button>
+    </header>
+
+    <section class="card input-section">
+        <textarea id="inputData" placeholder="Paste the raw billing table here..."></textarea>
+        <button class="btn-primary" onclick="processData()">Analyze Bill</button>
+    </section>
+
+    <div id="resultsArea" style="display:none; flex-direction: column; gap: 24px;">
+        
+        <!-- TABLE -->
+        <section class="card table-container">
+            <table class="analysis-table">
+                <thead>
+                    <tr>
+                        <th>Service Number</th>
+                        <th>Charge Code</th>
+                        <th>Offering Name</th>
+                        <th class="money">Charge</th>
+                        <th class="money">Tax</th>
+                        <th class="money">Discount</th>
+                        <th class="money">Net Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+                <tfoot>
+                    <tr class="tfoot-row">
+                        <td colspan="3" style="text-align: right; padding-right: 20px;">GRAND TOTAL</td>
+                        <td class="money" id="totalCharge">0.00</td>
+                        <td class="money" id="totalTax">0.00</td>
+                        <td class="money" id="totalDiscount" style="color: #ef4444;">0.00</td>
+                        <td class="money" style="font-size:1.1em; color: var(--accent-color);" id="totalOut">0.00 LE</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </section>
+
+        <!-- SUMMARY -->
+        <section class="summary-box" id="summaryBox">
+            <div class="summary-actions">
+                <button class="copy-btn" onclick="copySummaryWithBreaks()">
+                    <span>📋 Copy Details</span>
+                </button>
+            </div>
+            <div class="summary-text" id="arabicSummaryDisplay"></div>
+        </section>
+
+    </div>
+</main>
+
+<script>
+    /* --- CONFIG DEFAULT --- */
+    const defaultCodes = {
+        "FMC_MainRecurringRent": "الباقة الاساسية",
+        "PSTN_MainRecurringRent": "باقة الخط الارضي",
+        "FMC_RecurringRent": "خدمات العائلة / خصومات",
+        "POS_AdditionalRecurringRent": "باقات إضافية متجددة",
+        "VoiceMOLocalOffNet": "مكالمات خارج الباقة لأرقام خارج شبكة وي",
+        "VoiceMOLocalOnNet": "مكالمات خارج الباقة لأرقام شبكة وي",
+        "POS_AdditionalOneOffRent": "انترنت خارج الباقة كل 200 ميجا =5ج",
+        "Mobile Payments": "خدمات دفع الكترونية",
+        "POS_LineStamp": "ضريبة الدمغة الشهرية",
+        "PPS_LineStamp": "ضريبة الدمغة الشهرية لخط مسبق الدفع",
+        "BB_RecurringRent": "رسوم الراوتر الشهرية",
+        "Offer of extra sharing subscribers Revamp": "عميل إضافي في نظام العائلة",
+        "SMSChargeCode": "رسالة SMS لرقم مختصر",
+        "GPRSChargeCode": "حد المدفوعات الخاص بعضو العائلة",
+        "PSTN OneOff Rent Fee For Mobile": "باقة إضافية لمكالمات الموبايل للخط الأرضي",
+        "VoiceMOLocalFee": "مكالمات صوتية محلية",
+        "VoiceMoSpeciallCall": "مكالمات خاصة/دليل",
+        "Annual line stamp tax": "ضريبة الدمغة السنوية للخط الأرضي",
+        "GPRSFLUXINTERNATIONAL": "استهلاك انترنت دولي",
+        "FMC_AdditionalOneOffRent": "باقات إضافية للعائلة",
+        "InnerChargeCode": "رسوم داخلية",
+        "BB_GPRS_FEE": "رسوم GPRS",
+        "BB_AdditionalOneOffRent": "باقة إضافية للإنترنت الأرضي"
+    };
+
+    // تحميل الأكواد من الكاش المحلي للمتصفح إذا كانت موجودة، وإلا نستخدم الافتراضية
+    let codeDefinitions = JSON.parse(localStorage.getItem('saved_bill_codes')) || { ...defaultCodes };
+
+    function renderSidebar() {
+        const guideContainer = document.getElementById('guideContainer');
+        guideContainer.innerHTML = "";
+        for (let [code, desc] of Object.entries(codeDefinitions)) {
+            let div = document.createElement('div');
+            div.className = 'guide-item';
+            div.innerHTML = `
+                <div class="code-pill">${code}</div>
+                <div class="desc-text">${desc}</div>
+            `;
+            guideContainer.appendChild(div);
+        }
+    }
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const btn = document.getElementById('themeBtn');
+        if (currentTheme === 'dark') {
+            html.setAttribute('data-theme', 'light');
+            btn.innerHTML = '<span>🌙 Dark Mode</span>';
+        } else {
+            html.setAttribute('data-theme', 'dark');
+            btn.innerHTML = '<span>☀️ Light Mode</span>';
+        }
+    }
+
+    function saveManualCode() {
+        const codeInput = document.getElementById('manualCode').value.trim();
+        const descInput = document.getElementById('manualDesc').value.trim();
+        
+        if(!codeInput || !descInput) {
+            alert("برجاء إدخال الكود والتعريفة معاً بشكل صحيح.");
+            return;
+        }
+
+        // إضافة الكود الجديد للقاموس الحالي
+        codeDefinitions[codeInput] = descInput;
+        
+        // حفظ القاموس الجديد بشكل مشفر ودائم في المتصفح LocalStorage
+        localStorage.setItem('saved_bill_codes', JSON.stringify(codeDefinitions));
+        
+        // إعادة عرض الواجهة الجانبية وتحديث التقرير فوراً
+        renderSidebar();
+        document.getElementById('manualCode').value = "";
+        document.getElementById('manualDesc').value = "";
+        
+        // إذا كانت هناك داتا مدخلة مسبقاً، يعيد معالجتها على الفور بالكود الجديد
+        if(document.getElementById('inputData').value.trim()) {
+            processData();
+        }
+    }
+
+    function resetToDefault() {
+        if(confirm("هل أنت متأكد من رغبتك في حذف كافة الأكواد المضافة يدوياً والعودة لضبط المصنع الافتراضي؟")) {
+            localStorage.removeItem('saved_bill_codes');
+            codeDefinitions = { ...defaultCodes };
+            renderSidebar();
+            if(document.getElementById('inputData').value.trim()) {
+                processData();
+            }
+        }
+    }
+
+    // تشغيل القائمة عند الفتح لأول مرة
+    renderSidebar();
+
+    let globalSummaryData = []; 
+
+    function parseCurrency(str) {
+        if (!str) return 0;
+        let cleaned = str.replace(/LE/gi, '').replace(/,/g, '').trim();
+        return parseFloat(cleaned) || 0;
+    }
+
+    function formatMoneyArabic(amount) {
+        amount = parseFloat(amount.toFixed(2));
+        if (amount < 1 && amount > 0) {
+            return (amount * 100).toFixed(0) + " قرش";
+        } else {
+            return amount.toFixed(2) + " ج";
+        }
+    }
+
+    function getArabicDescription(chargeCode, offeringName) {
+        let nameLower = (offeringName || "").toLowerCase();
+        if (chargeCode === "BB_RecurringRent") {
+            if (nameLower.includes("top-up") && nameLower.includes("renew monthly")) {
+                return "باقة إضافية للإنترنت الأرضي";
+            }
+            return "رسوم الراوتر الشهرية";
+        }
+
+        if (chargeCode === "POS_AdditionalOneOffRent") {
+            // حالة 1: باقة Gaming أو PS (لو الاسم فيه كلمة gaming أو ps كلمة منفصلة)
+            if (nameLower.includes("gaming") || /\bps\b/.test(nameLower)) {
+                return "باقة إضافية Gaming / PS";
+            }
+            // حالة 2: باقة إضافية موبايل انترنت (زي Nitro Post 150 Onetime)
+            if (nameLower.includes("nitro") || nameLower.includes("onetime") || nameLower.includes("post")) {
+                return "باقة إضافية للموبايل انترنت";
+            }
+            // حالة 3 (الافتراضي): الاسم بيكون نفس اسم النظام (زي We Gold) = انترنت خارج الباقة
+            return "انترنت خارج الباقة كل 200 ميجا =5ج";
+        }
+
+        return codeDefinitions[chargeCode];
+    }
+
+    function processData() {
+        const rawData = document.getElementById('inputData').value.trim();
+        if (!rawData) return;
+
+        const lines = rawData.split('\n');
+        const groupedData = {};
+        let gTotalCharge = 0, gTotalTax = 0, gTotalDiscount = 0;
+        let totalOut = 0;
+
+        lines.forEach(line => {
+            line = line.trim();
+            if (!line || line.length < 10 || !line.includes("Billed amount")) return;
+
+            let parts = line.split(/\t+| {2,}/);
+            let anchorIndex = -1;
+            for (let i = 0; i < parts.length; i++) {
+                if (parts[i].toLowerCase().includes("billed amount")) {
+                    anchorIndex = i; break;
+                }
+            }
+            if (anchorIndex === -1) return;
+
+            let chargeCode = parts[anchorIndex + 2];
+            let chargeAmtStr = parts[anchorIndex + 3];
+            let offeringName = parts[anchorIndex + 4] || "-";
+            
+            let discountStr = "0.00";
+            if (parts[anchorIndex + 5] && parts[anchorIndex + 5].includes("LE")) {
+                discountStr = parts[anchorIndex + 5];
+            }
+
+            let taxStr = "0.00";
+            for (let i = parts.length - 1; i > anchorIndex + 4; i--) {
+                if (parts[i].includes("LE")) { taxStr = parts[i]; break; }
+            }
+
+            let serviceNum = parts[anchorIndex - 2];
+            if (chargeCode === "FMC_MainRecurringRent" || !serviceNum || (serviceNum.length > 12 && !serviceNum.includes("@"))) {
+                if(chargeCode && chargeCode.includes("FMC")) serviceNum = "Account Level";
+                else if (!serviceNum || serviceNum.length > 12) serviceNum = "Account / General";
+            }
+
+            let chargeVal = parseCurrency(chargeAmtStr);
+            let taxVal = parseCurrency(taxStr);
+            let discountVal = parseCurrency(discountStr);
+
+            if (chargeVal === 0 && taxVal === 0 && discountVal === 0) return;
+
+            let calculatedValue = (chargeVal + taxVal) - discountVal;
+            let key = serviceNum + "|" + chargeCode + "|" + offeringName;
+
+            if (!groupedData[key]) {
+                groupedData[key] = {
+                    serviceNum, chargeCode, offeringName,
+                    totalCharge: 0, totalTax: 0, totalDiscount: 0, totalOut: 0,
+                    sessions: []
+                };
+            }
+            
+            groupedData[key].totalCharge += chargeVal;
+            groupedData[key].totalTax += taxVal;
+            groupedData[key].totalDiscount += discountVal;
+            groupedData[key].totalOut += calculatedValue;
+            groupedData[key].sessions.push({ c: chargeVal, t: taxVal, d: discountVal, o: calculatedValue });
+        });
+
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = "";
+        
+        let tempSummaryMap = {};
+
+        for (let key in groupedData) {
+            let row = groupedData[key];
+            
+            gTotalCharge += row.totalCharge;
+            gTotalTax += row.totalTax;
+            gTotalDiscount += row.totalDiscount;
+            totalOut += row.totalOut;
+
+            let arabicDesc = getArabicDescription(row.chargeCode, row.offeringName);
+            
+            // نفس الكود ممكن يكون له أكتر من وصف عربي مختلف حسب Offering Name
+            // (مثال: POS_AdditionalOneOffRent ممكن يكون 200 ميجا أو Nitro أو Gaming/PS)
+            // فلازم كل وصف مختلف ياخد خانة منفصلة في الملخص بدل ما يتجمعوا في خانة واحدة غلط
+            let masterKey = row.chargeCode + "||" + (arabicDesc || "");
+
+            if(!tempSummaryMap[masterKey]) {
+                tempSummaryMap[masterKey] = {
+                    code: row.chargeCode,
+                    label: arabicDesc || null,
+                    amount: 0,
+                    count: 0
+                };
+            }
+            tempSummaryMap[masterKey].amount += row.totalOut;
+            tempSummaryMap[masterKey].count += row.sessions.length;
+
+            let chargeBr = "", taxBr = "", discountBr = "", outBr = "";
+            if(row.sessions.length > 1) {
+                chargeBr = `<div class="breakdown-container">` + row.sessions.map(s => `<span class="mini-val">${s.c.toFixed(2)}</span>`).join("") + `</div>`;
+                taxBr = `<div class="breakdown-container">` + row.sessions.map(s => `<span class="mini-val">${s.t.toFixed(2)}</span>`).join("") + `</div>`;
+                discountBr = `<div class="breakdown-container">` + row.sessions.map(s => `<span class="mini-val">${s.d.toFixed(2)}</span>`).join("") + `</div>`;
+                outBr = `<div class="breakdown-container">` + row.sessions.map(s => `<span class="mini-val">${s.o.toFixed(2)}</span>`).join("") + `</div>`;
+            }
+
+            let isKnown = codeDefinitions[row.chargeCode] !== undefined;
+            let codeCellClass = isKnown ? "" : "class='unknown-code'";
+
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:600; color:var(--accent-color);">${row.serviceNum}</td>
+                <td><span ${codeCellClass}>${row.chargeCode}</span></td>
+                <td style="color:var(--text-secondary); font-size:13px;">${row.offeringName}</td>
+                <td class="money"><span class="main-amount">${row.totalCharge.toFixed(2)}</span>${chargeBr}</td>
+                <td class="money"><span class="main-amount">${row.totalTax.toFixed(2)}</span>${taxBr}</td>
+                <td class="money" style="color:#ef4444;"><span class="main-amount">${row.totalDiscount.toFixed(2)}</span>${discountBr}</td>
+                <td class="money"><span class="main-amount out-amount">${row.totalOut.toFixed(2)}</span>${outBr}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        document.getElementById('totalCharge').innerText = gTotalCharge.toFixed(2);
+        document.getElementById('totalTax').innerText = gTotalTax.toFixed(2);
+        document.getElementById('totalDiscount').innerText = gTotalDiscount.toFixed(2);
+        document.getElementById('totalOut').innerText = totalOut.toFixed(2) + " LE";
+
+        globalSummaryData = Object.values(tempSummaryMap);
+
+        // بناء نص الكومنت النظيف
+        let displayHTML = `تفاصيل فاتورة حضرتك يا فندم<br><p>&nbsp;</p>`;
+        
+        globalSummaryData.forEach(item => {
+            let formattedAmt = formatMoneyArabic(item.amount);
+            let countSuffix = item.count > 1 ? ` (عدد ${item.count})` : "";
+            if(item.label) {
+                displayHTML += `${item.label}${countSuffix}: ${formattedAmt}<br><p>&nbsp;</p>`;
+            } else {
+                displayHTML += `<span style="color:#ef4444; font-weight:bold;">${countSuffix}: ${formattedAmt}</span><br><p>&nbsp;</p>`;
+            }
+        });
+        
+        displayHTML = displayHTML.replace(/<br><p>&nbsp;<\/p>$/, "");
+        
+        document.getElementById('arabicSummaryDisplay').innerHTML = displayHTML;
+        document.getElementById('resultsArea').style.display = 'flex';
+        document.querySelector('.summary-box').style.display = 'block';
+    }
+
+    function copySummaryWithBreaks() {
+        let textToCopy = `تفاصيل فاتورة حضرتك يا فندم\n<p>&nbsp;</p>\n`;
+
+        globalSummaryData.forEach((item, index) => {
+            let formattedAmt = formatMoneyArabic(item.amount);
+            let countSuffix = item.count > 1 ? ` (عدد ${item.count})` : "";
+            if(item.label) {
+                textToCopy += `${item.label}${countSuffix}: ${formattedAmt}`;
+            } else {
+                textToCopy += `${countSuffix}: ${formattedAmt}`;
+            }
+            
+            if(index < globalSummaryData.length - 1) {
+                textToCopy += `\n<p>&nbsp;</p>\n`;
+            }
+        });
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const btn = document.querySelector('.copy-btn span');
+            const originalText = btn.innerText;
+            btn.innerText = "✅ Copied!";
+            setTimeout(() => btn.innerText = originalText, 1500);
+        });
+    }
+</script>
+</body>
+</html>
