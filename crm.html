@@ -297,9 +297,8 @@
     <div class="auth-title">Access Restricted</div>
     <div class="auth-subtitle">Enter passkey to open Digital Support CRM</div>
     
-    <!-- تم تعديل الفورم هنا ليتوافق مع مدير كلمات المرور في المتصفحات -->
-    <form onsubmit="handleAuth(event)" method="post" autocomplete="on">
-      <!-- اسم مستخدم وهمي مخفي لكي يتعرف المتصفح على كلمة المرور المرتبطة به كحساب متكامل -->
+    <!-- تم إزالة method="POST" لتجنب خطأ 405 على GitHub Pages -->
+    <form onsubmit="handleAuth(event)" autocomplete="on">
       <input type="text" name="username" value="DigitalSupportAgent" autocomplete="username" style="display:none;" />
       
       <div class="auth-input-group">
@@ -492,14 +491,13 @@
   });
 
   // Anti-DevTools Library Configuration
- [cite: 1]
   DisableDevtool({
     ondevtoolopen: function() {
       if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         window.location.href = 'about:blank';
       }
     },
-    disableMenu: true,
+    disableMenu: function() { return true; },
     clearLog: true,
     interval: 500
   });
