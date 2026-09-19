@@ -297,9 +297,21 @@
     <div class="auth-title">Access Restricted</div>
     <div class="auth-subtitle">Enter passkey to open Digital Support CRM</div>
     
-    <form onsubmit="handleAuth(event)">
+    <form onsubmit="handleAuth(event)" method="POST" autocomplete="on">
+      <!-- حقل اسم مستخدم مخفي لمساعدة المتصفح في التعرف على بيانات الاعتماد كحزمة واحدة -->
+      <input type="text" name="username" value="DigitalSupport" autocomplete="username" style="display:none;" />
+      
       <div class="auth-input-group">
-        <input type="password" id="passkey-input" class="auth-input" placeholder="Enter Password" required autofocus />
+        <input 
+          type="password" 
+          id="passkey-input" 
+          name="password" 
+          class="auth-input" 
+          placeholder="Enter Password" 
+          autocomplete="current-password" 
+          required 
+          autofocus 
+        />
       </div>
       <button type="submit" class="auth-btn">Unlock System</button>
       <div id="auth-error" class="auth-error">Incorrect Password! Please try again.</div>
