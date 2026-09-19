@@ -297,21 +297,9 @@
     <div class="auth-title">Access Restricted</div>
     <div class="auth-subtitle">Enter passkey to open Digital Support CRM</div>
     
-    <!-- تم إزالة method="POST" لتجنب خطأ 405 على GitHub Pages -->
-    <form onsubmit="handleAuth(event)" autocomplete="on">
-      <input type="text" name="username" value="DigitalSupportAgent" autocomplete="username" style="display:none;" />
-      
+    <form onsubmit="handleAuth(event)">
       <div class="auth-input-group">
-        <input 
-          type="password" 
-          id="passkey-input" 
-          name="password"
-          class="auth-input" 
-          placeholder="Enter Password" 
-          autocomplete="current-password"
-          required 
-          autofocus 
-        />
+        <input type="password" id="passkey-input" class="auth-input" placeholder="Enter Password" required autofocus />
       </div>
       <button type="submit" class="auth-btn">Unlock System</button>
       <div id="auth-error" class="auth-error">Incorrect Password! Please try again.</div>
@@ -403,7 +391,7 @@
     <iframe id="tool2" class="tool-frame" src="DCB-Services-Post.html"></iframe>
     <iframe id="tool3" class="tool-frame" src="daily_Usage-GSM.html"></iframe>
     <iframe id="tool4" class="tool-frame" src="Daily_Usage_ADSL.html"></iframe>
-    <iframe id="tool5" class="tool-frame" src="Bill-Accuracy.html"></iframe>
+    <iframe id="tool5" class="tool-frame" src="Bill-Explanation.html"></iframe>
     <iframe id="tool6" class="tool-frame" src="We-Bonus.html"></iframe>
     <iframe id="tool7" class="tool-frame" src="GSM-Pro.html"></iframe>
     <iframe id="tool8" class="tool-frame" src="Escalation-Matrix.html"></iframe>
@@ -435,6 +423,7 @@
     } else {
       errorMsg.style.display = 'block';
       card.classList.remove('shake');
+      // Trigger reflow for re-animating
       void card.offsetWidth; 
       card.classList.add('shake');
       input.value = '';
@@ -497,7 +486,7 @@
         window.location.href = 'about:blank';
       }
     },
-    disableMenu: function() { return true; },
+    disableMenu: true,
     clearLog: true,
     interval: 500
   });
