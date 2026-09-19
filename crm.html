@@ -297,18 +297,19 @@
     <div class="auth-title">Access Restricted</div>
     <div class="auth-subtitle">Enter passkey to open Digital Support CRM</div>
     
-    <form onsubmit="handleAuth(event)" method="POST" autocomplete="on">
-      <!-- حقل اسم مستخدم مخفي لمساعدة المتصفح في التعرف على بيانات الاعتماد كحزمة واحدة -->
-      <input type="text" name="username" value="DigitalSupport" autocomplete="username" style="display:none;" />
+    <!-- تم تعديل الفورم هنا ليتوافق مع مدير كلمات المرور في المتصفحات -->
+    <form onsubmit="handleAuth(event)" method="post" autocomplete="on">
+      <!-- اسم مستخدم وهمي مخفي لكي يتعرف المتصفح على كلمة المرور المرتبطة به كحساب متكامل -->
+      <input type="text" name="username" value="DigitalSupportAgent" autocomplete="username" style="display:none;" />
       
       <div class="auth-input-group">
         <input 
           type="password" 
           id="passkey-input" 
-          name="password" 
+          name="password"
           class="auth-input" 
           placeholder="Enter Password" 
-          autocomplete="current-password" 
+          autocomplete="current-password"
           required 
           autofocus 
         />
@@ -403,7 +404,7 @@
     <iframe id="tool2" class="tool-frame" src="DCB-Services-Post.html"></iframe>
     <iframe id="tool3" class="tool-frame" src="daily_Usage-GSM.html"></iframe>
     <iframe id="tool4" class="tool-frame" src="Daily_Usage_ADSL.html"></iframe>
-    <iframe id="tool5" class="tool-frame" src="Bill-Explanation.html"></iframe>
+    <iframe id="tool5" class="tool-frame" src="Bill-Accuracy.html"></iframe>
     <iframe id="tool6" class="tool-frame" src="We-Bonus.html"></iframe>
     <iframe id="tool7" class="tool-frame" src="GSM-Pro.html"></iframe>
     <iframe id="tool8" class="tool-frame" src="Escalation-Matrix.html"></iframe>
@@ -435,7 +436,6 @@
     } else {
       errorMsg.style.display = 'block';
       card.classList.remove('shake');
-      // Trigger reflow for re-animating
       void card.offsetWidth; 
       card.classList.add('shake');
       input.value = '';
@@ -492,6 +492,7 @@
   });
 
   // Anti-DevTools Library Configuration
+ [cite: 1]
   DisableDevtool({
     ondevtoolopen: function() {
       if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
