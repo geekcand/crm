@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bill Explanation Tool V2.3</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght=400;600;700&family=Inter:wght=400;500;600&family=Fira+Code:wght=500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
     <style>
         /* --- COLOR PALETTE & THEMES --- */
         :root {
@@ -380,7 +380,7 @@
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -391,7 +391,7 @@
         </h3>
     </div>
     
-    <!-- TOP SIDEBAR MANUAL MAPPING WAJEHA -->
+    <!-- TOP SIDEBAR MANUAL FORM -->
     <div class="sidebar-form">
         <input type="text" id="manualCode" class="sb-input" placeholder="كود الفاتورة (مثال: Mle Payments)">
         <input type="text" id="manualDesc" class="sb-input" placeholder="التعريفة العربية (مثال: خدمات الفواتير)">
@@ -490,7 +490,6 @@
         "BB_AdditionalOneOffRent": "باقة إضافية للإنترنت الأرضي"
     };
 
-    // تحميل الأكواد من الكاش المحلي للمتصفح إذا كانت موجودة، وإلا نستخدم الافتراضية
     let codeDefinitions = JSON.parse(localStorage.getItem('saved_bill_codes')) || { ...defaultCodes };
 
     function renderSidebar() {
@@ -529,18 +528,13 @@
             return;
         }
 
-        // إضافة الكود الجديد للقاموس الحالي
         codeDefinitions[codeInput] = descInput;
-        
-        // حفظ القاموس الجديد بشكل مشفر ودائم في المتصفح LocalStorage
         localStorage.setItem('saved_bill_codes', JSON.stringify(codeDefinitions));
         
-        // إعادة عرض الواجهة الجانبية وتحديث التقرير فوراً
         renderSidebar();
         document.getElementById('manualCode').value = "";
         document.getElementById('manualDesc').value = "";
         
-        // إذا كانت هناك داتا مدخلة مسبقاً، يعيد معالجتها على الفور بالكود الجديد
         if(document.getElementById('inputData').value.trim()) {
             processData();
         }
@@ -557,7 +551,6 @@
         }
     }
 
-    // تشغيل القائمة عند الفتح لأول مرة
     renderSidebar();
 
     let globalSummaryData = []; 
@@ -587,15 +580,12 @@
         }
 
         if (chargeCode === "POS_AdditionalOneOffRent") {
-            // حالة 1: باقة Gaming أو PS (لو الاسم فيه كلمة gaming أو ps كلمة منفصلة)
             if (nameLower.includes("gaming") || /\bps\b/.test(nameLower)) {
                 return "باقة إضافية Gaming / PS";
             }
-            // حالة 2: باقة إضافية موبايل انترنت (زي Nitro Post 150 Onetime)
             if (nameLower.includes("nitro") || nameLower.includes("onetime") || nameLower.includes("post")) {
                 return "باقة إضافية للموبايل انترنت";
             }
-            // حالة 3 (الافتراضي): الاسم بيكون نفس اسم النظام (زي We Gold) = انترنت خارج الباقة
             return "انترنت خارج الباقة كل 200 ميجا =5ج";
         }
 
@@ -682,10 +672,6 @@
             totalOut += row.totalOut;
 
             let arabicDesc = getArabicDescription(row.chargeCode, row.offeringName);
-            
-            // نفس الكود ممكن يكون له أكتر من وصف عربي مختلف حسب Offering Name
-            // (مثال: POS_AdditionalOneOffRent ممكن يكون 200 ميجا أو Nitro أو Gaming/PS)
-            // فلازم كل وصف مختلف ياخد خانة منفصلة في الملخص بدل ما يتجمعوا في خانة واحدة غلط
             let masterKey = row.chargeCode + "||" + (arabicDesc || "");
 
             if(!tempSummaryMap[masterKey]) {
@@ -730,7 +716,6 @@
 
         globalSummaryData = Object.values(tempSummaryMap);
 
-        // بناء نص الكومنت النظيف
         let displayHTML = `تفاصيل فاتورة حضرتك يا فندم<br><p>&nbsp;</p>`;
         
         globalSummaryData.forEach(item => {
@@ -774,6 +759,36 @@
             setTimeout(() => btn.innerText = originalText, 1500);
         });
     }
+
+    // --- حماية صارمة لمنع الحفظ (Ctrl+S) واختصارات الفحص والطباعة ---
+    document.addEventListener('keydown', function(e) {
+        const key = e.key.toLowerCase();
+        if ((e.ctrlKey || e.metaKey) && (key === 's' || e.keyCode === 83)) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            alert("هذه الصفحة محمية بالكامل لمنع الحفظ 🛡️");
+            return false;
+        }
+    }, true);
+
+    window.addEventListener('keydown', function(e) {
+        const key = e.key.toLowerCase();
+        if (
+            e.key === 'F12' || 
+            ((e.ctrlKey || e.metaKey) && (key === 'p' || key === 'u' || key === 'i' || key === 'j' || key === 'c')) || 
+            (e.ctrlKey && e.shiftKey)
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }
+    }, true);
+
+    window.addEventListener('beforeprint', function(e) {
+        e.preventDefault();
+    });
 </script>
 </body>
 </html>
