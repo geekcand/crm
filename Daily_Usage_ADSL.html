@@ -369,7 +369,7 @@ textarea::placeholder {
 }
 </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
 <div class="container">
     <div class="header">
@@ -382,7 +382,7 @@ textarea::placeholder {
         <i class="fa-solid fa-file-excel"></i>
         <div class="upload-text-group">
             <p id="uploadStatus">رفع شيت الـ CDR أو اضغط للاستيراد</p>
-            <span>يدعم ملفات .xls و .xlsx وسيتم تصفيتها وجدولتها تلقائياً</span>
+            <span>يدعم ملفات .xls و .xlsx وسيتم تصفيتها وجدولتها تلقائيًا</span>
         </div>
         <input type="file" id="fileInput" accept=".xls,.xlsx" onchange="handleExcelUpload(event)">
     </div>
@@ -634,7 +634,38 @@ function resetAll(){
     resetStats();
     showToast("تم إعادة تعيين الحقول");
 }
+
+// --- حماية صارمة لمنع الحفظ (Ctrl+S) واختصارات الفحص والطباعة ---
+document.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && (key === 's' || e.keyCode === 83)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        alert("هذه الصفحة محمية بالكامل لمنع الحفظ 🛡️");
+        return false;
+    }
+}, true);
+
+window.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
+    if (
+        e.key === 'F12' || 
+        ((e.ctrlKey || e.metaKey) && (key === 'p' || key === 'u' || key === 'i' || key === 'j' || key === 'c')) || 
+        (e.ctrlKey && e.shiftKey)
+    ) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+    }
+}, true);
+
+window.addEventListener('beforeprint', function(e) {
+    e.preventDefault();
+});
 </script>
 
 </body>
 </html>
+```[cite: 14]
