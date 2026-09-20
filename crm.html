@@ -477,7 +477,7 @@
         <span>Concession GSM</span>
       </div>
 
-      <!-- ABOUT & CONTACT TAB (في نهاية القائمة مباشرة فوق بروفايل Digital Support) -->
+      <!-- ABOUT & CONTACT TAB -->
       <div class="nav-item" onclick="switchTool('aboutTool', this)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         <span>About and Contact</span>
@@ -607,19 +607,37 @@
     });
   }
 
-  // Keyboard Shortcuts Protection
-  window.addEventListener('keydown', function(e) {
-    if (
-      e.key === 'F12' || 
-      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) || 
-      (e.ctrlKey && (e.key === 'U' || e.key === 'u'))
-    ) {
+  // Keyboard Shortcuts Protection (حماية صارمة لمنع الحفظ Ctrl+S والفحص)
+  document.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && (key === 's' || e.keyCode === 83)) {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      alert("هذه الصفحة محمية بالكامل لمنع الحفظ 🛡️");
       return false;
     }
+  }, true);
+
+  window.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
+    if (
+      e.key === 'F12' || 
+      ((e.ctrlKey || e.metaKey) && (key === 'p' || key === 'u' || key === 'i' || key === 'j' || key === 'c')) || 
+      (e.ctrlKey && e.shiftKey)
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    }
+  }, true);
+
+  window.addEventListener('beforeprint', function(e) {
+    e.preventDefault();
   });
 
-  // Anti-DevTools Library Library Configuration
+  // Anti-DevTools Library Configuration
   DisableDevtool({
     ondevtoolopen: function() {
       if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
