@@ -369,7 +369,7 @@ textarea::placeholder {
 }
 </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
 <div class="container">
     <div class="header">
@@ -450,7 +450,7 @@ textarea::placeholder {
 <div id="toast" class="toast"></div>
 
 <script>
-// إعداد منطقة السحب والإفلات برمجياً لضمان استجابتها الكاملة
+// إعداد منطقة السحب والإفلت برمجياً لضمان استجابتها الكاملة
 var dropZone = document.getElementById('dropZone');
 
 dropZone.addEventListener('dragover', function(e) {
@@ -653,6 +653,36 @@ function resetAll(){
     resetStats();
     showToast("تم إعادة تعيين الحقول");
 }
+
+// --- حماية صارمة لمنع الحفظ (Ctrl+S) واختصارات الفحص والطباعة ---
+document.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && (key === 's' || e.keyCode === 83)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        alert("هذه الصفحة محمية بالكامل لمنع الحفظ 🛡️");
+        return false;
+    }
+}, true);
+
+window.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
+    if (
+        e.key === 'F12' || 
+        ((e.ctrlKey || e.metaKey) && (key === 'p' || key === 'u' || key === 'i' || key === 'j' || key === 'c')) || 
+        (e.ctrlKey && e.shiftKey)
+    ) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+    }
+}, true);
+
+window.addEventListener('beforeprint', function(e) {
+    e.preventDefault();
+});
 </script>
 
 </body>
