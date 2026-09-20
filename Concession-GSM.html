@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Concession Package Formatter</title>
+    <title>Concession GSM</title>
     <!-- SheetJS Library for Excel Processing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- FontAwesome Icons -->
@@ -218,12 +218,12 @@
             text-align: center;
             font-size: 13px;
             color: var(--footer-color);
-            font-weight: 700; /* Bold Footer */
+            font-weight: 700;
             letter-spacing: 0.4px;
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
     <div class="header-actions">
         <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
@@ -257,9 +257,7 @@
         </div>
     </div>
 
-    <footer>
-
-    </footer>
+    <footer></footer>
 
 <script>
     let selectedFile = null;
@@ -384,8 +382,39 @@
         statusDiv.className = type + ' show';
     }
 
+    // --- حماية صارمة لمنع الحفظ (Ctrl+S) واختصارات الفحص والطباعة ---
+    document.addEventListener('keydown', function(e) {
+        const key = e.key.toLowerCase();
+        if ((e.ctrlKey || e.metaKey) && (key === 's' || e.keyCode === 83)) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            alert("هذه الصفحة محمية بالكامل لمنع الحفظ 🛡️");
+            return false;
+        }
+    }, true);
+
+    window.addEventListener('keydown', function(e) {
+        const key = e.key.toLowerCase();
+        if (
+            e.key === 'F12' || 
+            ((e.ctrlKey || e.metaKey) && (key === 'p' || key === 'u' || key === 'i' || key === 'j' || key === 'c')) || 
+            (e.ctrlKey && e.shiftKey)
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }
+    }, true);
+
+    window.addEventListener('beforeprint', function(e) {
+        e.preventDefault();
+    });
+
     initTheme();
 </script>
 
 </body>
 </html>
+```[cite: 13]
