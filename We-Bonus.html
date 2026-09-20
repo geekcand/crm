@@ -24,7 +24,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen pb-12" oncontextmenu="return false;">
 
     <!-- Dark Header -->
     <header class="bg-slate-900 border-b border-slate-800 text-white shadow-md mb-8">
@@ -472,6 +472,37 @@
             }
             document.body.removeChild(tempTextArea);
         }
+
+        // --- حماية صارمة لمنع الحفظ (Ctrl+S) واختصارات الفحص والطباعة ---
+        document.addEventListener('keydown', function(e) {
+            const key = e.key.toLowerCase();
+            if ((e.ctrlKey || e.metaKey) && (key === 's' || e.keyCode === 83)) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                alert("هذه الصفحة محمية بالكامل لمنع الحفظ 🛡️");
+                return false;
+            }
+        }, true);
+
+        window.addEventListener('keydown', function(e) {
+            const key = e.key.toLowerCase();
+            if (
+                e.key === 'F12' || 
+                ((e.ctrlKey || e.metaKey) && (key === 'p' || key === 'u' || key === 'i' || key === 'j' || key === 'c')) || 
+                (e.ctrlKey && e.shiftKey)
+            ) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        }, true);
+
+        window.addEventListener('beforeprint', function(e) {
+            e.preventDefault();
+        });
     </script>
 </body>
 </html>
+```[cite: 15]
